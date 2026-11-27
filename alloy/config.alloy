@@ -1,0 +1,42 @@
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+
+  filter {
+    name = "name"
+    values = ["rota-vital"]
+  }
+}
+
+discovery.relabel "rota_vital" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex = "/rota-vital"
+    action = "keep"
+  }
+
+  rule {
+    target_label = "application"
+    replacement = "rota-vital"
+  }
+
+  rule {
+    target_label = "container"
+    replacement = "rota-vital"
+  }
+}
+
+loki.source.docker "logs" {
+  host = "unix:///var/run/docker.sock"
+  targets = discovery.relabel.rota_vital.output
+  forward_to = [loki.write.local.receiver]
+  refresh_interval = "5s"
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

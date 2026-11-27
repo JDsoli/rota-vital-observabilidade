@@ -19,7 +19,7 @@ public class SecurityConfig {
         return email -> {
             var user = users.findByEmail(email.strip().toLowerCase(Locale.ROOT))
                 .filter(u -> u.getSenhaHash() != null)
-                .orElseThrow(() -> new UsernameNotFoundException("Credenciais inválidas"));
+                .orElseThrow(() -> new UsernameNotFoundException("Credenciais invÃ¡lidas"));
             return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail()).password(user.getSenhaHash())
                 .roles("USUARIO").build();
@@ -31,6 +31,8 @@ public class SecurityConfig {
         return http
         .authorizeHttpRequests(a -> a
         .requestMatchers(
+        "/observabilidade/teste",
+        "/observabilidade/erro",
         "/actuator/health",
         "/actuator/info",
         "/actuator/metrics",
