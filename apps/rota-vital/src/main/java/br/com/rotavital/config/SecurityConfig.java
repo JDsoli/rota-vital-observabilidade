@@ -29,10 +29,17 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .authorizeHttpRequests(a -> a
-                .requestMatchers("/", "/login", "/login.html", "/registro", "/registro.html",
-                    "/css/**", "/js/**", "/img/**", "/error").permitAll()
-                .anyRequest().authenticated())
+        .authorizeHttpRequests(a -> a
+        .requestMatchers(
+        "/actuator/health",
+        "/actuator/info",
+        "/actuator/metrics",
+        "/actuator/metrics/**",
+        "/actuator/prometheus"
+        ).permitAll()
+        .requestMatchers("/", "/login", "/login.html", "/registro", "/registro.html",
+        "/css/**", "/js/**", "/img/**", "/error").permitAll()
+        .anyRequest().authenticated())
             .exceptionHandling(e -> e.defaultAuthenticationEntryPointFor(
                 new org.springframework.security.web.authentication.HttpStatusEntryPoint(
                     org.springframework.http.HttpStatus.UNAUTHORIZED),
