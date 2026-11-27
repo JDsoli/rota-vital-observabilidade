@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/layout :: metadados('Estoque', 'Rota Vital: estoque de hemocomponentes ordenado por vencimento.')}"></th:block>
+</head>
+<body>
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('index')}"></aside>
+    <main id="conteudo" class="screen">
+        <header class="page-heading">
+            <p class="eyebrow">Etapa 01 · Estoque</p>
+            <h1>Estoque disponível</h1>
+            <p class="subtitle">Bolsas do hemocentro da mais próxima do vencimento para a mais distante (FEFO).</p>
+        </header>
+        <div class="page-content">
+            <th:block th:replace="~{fragments/layout :: mensagens}"></th:block>
+
+            <div class="stats">
+                <section class="stat stat-ok"><h2>Disponíveis</h2><p th:text="${disponiveis}">0</p><span class="stat-note">prontas para alocação</span></section>
+                <section class="stat"><h2>Reservadas</h2><p th:text="${reservadas}">0</p><span class="stat-note">vinculadas a requisições</span></section>
+                <section class="stat stat-alerta"><h2>Bloqueadas / vencidas</h2><p th:text="${bloqueadas}">0</p><span class="stat-note">fora de uso</span></section>
+            </div>
+
+            <form class="card fields filters" method="get" th:action="@{/estoque}">
+                <label>Componente
+                    <select name="componente">
+                        <option value="">Todos</option>
+                        <option th:each="c : ${componentes}" th:value="${c}" th:text="${c.rotulo}" th:selected="${c == filtroComponente}"></option>
+                    </select>
+                </label>
+                <label>Tipo sanguíneo
+                    <select name="tipo">
+                        <option value="">Todos</option>
+                        <option th:each="t : ${tipos}" th:value="${t}" th:text="${t.rotulo}" th:selected="${t == filtroTipo}"></option>
+                    </select>
+                </label>
+                <button class="button" type="submit">Consultar saldo</button>
+                <a class="button button-secundario" th:href="@{/estoque}">Limpar filtros</a>
+            </form>
+
+            <h2 class="section-title">Bolsas por vencimento <small>FEFO</small></h2>
+            <div class="table-wrap">
+                <table>
+                    <caption class="sr-only">Bolsas do estoque ordenadas por vencimento</caption>
+                    <thead><tr><th scope="col">Bolsa</th><th scope="col">Componente</th><th scope="col">Tipo</th><th scope="col">Vencimento</th><th scope="col">Situação</th></tr></thead>
+                    <tbody>
+                    <tr th:each="b : ${bolsas}">
+                        <td><strong th:text="${b.codigo}">B101</strong></td>
+                        <td th:text="${b.componente.rotulo}"></td>
+                        <td th:text="${b.tipoSanguineo.rotulo}"></td>
+                        <td th:text="${#temporals.format(b.validade, 'dd/MM/yyyy')}"></td>
+                        <td><span class="badge"
+                                  th:classappend="${b.estaVencida() or b.status.name() == 'INDISPONIVEL'} ? 'badge-alerta' : (${b.status.name() == 'DISPONIVEL'} ? 'badge-ok' : 'badge-info')"
+                                  th:text="${b.estaVencida() ? 'Vencida' : b.status.rotulo}">Disponível</span></td>
+                    </tr>
+                    <tr class="linha-vazia" th:if="${#lists.isEmpty(bolsas)}"><td colspan="5">Nenhuma bolsa encontrada.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="actions"><a class="button" th:href="@{/requisicao}">Nova requisição</a></div>
+
+            <details class="panel">
+                <summary>Cadastrar bolsa no estoque</summary>
+                <form method="post" th:action="@{/bolsas}">
+                    <div class="fields two">
+                        <label>Código<input name="codigo" maxlength="100" required placeholder="Ex.: B101"></label>
+                        <label>Componente
+                            <select name="componente" required>
+                                <option value="">Selecione</option>
+                                <option th:each="c : ${componentes}" th:value="${c}" th:text="${c.rotulo}"></option>
+                            </select>
+                        </label>
+                        <label>Tipo sanguíneo
+                            <select name="tipoSanguineo" required>
+                                <option value="">Selecione</option>
+                                <option th:each="t : ${tipos}" th:value="${t}" th:text="${t.rotulo}"></option>
+                            </select>
+                        </label>
+                        <label>Validade<input type="date" name="validade" required></label>
+                    </div>
+                    <button class="button" type="submit">Cadastrar bolsa</button>
+                </form>
+            </details>
+        </div>
+        <footer th:replace="~{fragments/layout :: rodape}"></footer>
+    </main>
+</div>
+</body>
+</html>

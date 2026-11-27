@@ -1,0 +1,17 @@
+package br.com.rotavital.repository;
+
+import java.util.Optional;
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
+import br.com.rotavital.model.Requisicao;
+
+public interface RequisicaoRepository extends JpaRepository<Requisicao, Long> {
+    /** Traz as bolsas reservadas na mesma consulta: a listagem exibe os códigos de cada requisição. */
+    @EntityGraph(attributePaths = "bolsas")
+    java.util.List<Requisicao> findByUsuarioIdOrderByIdDesc(Long usuarioId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select r from Requisicao r where r.id = :id")
+    Optional<Requisicao> buscarParaReserva(@Param("id") Long id);
+}
